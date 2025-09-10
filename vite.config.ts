@@ -1,22 +1,22 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import dts from 'vite-plugin-dts';
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
-
-  export default defineConfig({
-    plugins: [react()],
+export default defineConfig(({ mode }) => {
+  const isLibrary = mode === 'library';
+  
+  return {
+    plugins: [
+      react(),
+      ...(isLibrary ? [dts({ 
+        insertTypesEntry: true,
+        exclude: ['src/App.tsx', 'src/main.tsx']
+      })] : [])
+    ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
-        'vaul@1.1.2': 'vaul',
-        'sonner@2.0.3': 'sonner',
-        'recharts@2.15.2': 'recharts',
-        'react-resizable-panels@2.1.7': 'react-resizable-panels',
-        'react-hook-form@7.55.0': 'react-hook-form',
-        'react-day-picker@8.10.1': 'react-day-picker',
-        'next-themes@0.4.6': 'next-themes',
-        'lucide-react@0.487.0': 'lucide-react',
-        'input-otp@1.4.2': 'input-otp',
         'figma:asset/f2bbbf5137e15f87ab18b3e13c17b44d6b73ee50.png': path.resolve(__dirname, './src/assets/f2bbbf5137e15f87ab18b3e13c17b44d6b73ee50.png'),
         'figma:asset/f14b09a3c6d6708078a505b061ea68fd3d1d46ca.png': path.resolve(__dirname, './src/assets/f14b09a3c6d6708078a505b061ea68fd3d1d46ca.png'),
         'figma:asset/e9ecbf1d8aa9429f05b4ae01511c02361524f05b.png': path.resolve(__dirname, './src/assets/e9ecbf1d8aa9429f05b4ae01511c02361524f05b.png'),
@@ -43,39 +43,28 @@
         'figma:asset/286cb07dcde9e4a2d43fda2e2a87b00408c07300.png': path.resolve(__dirname, './src/assets/286cb07dcde9e4a2d43fda2e2a87b00408c07300.png'),
         'figma:asset/10b6454492f55776817fcca630423f3e548acf56.png': path.resolve(__dirname, './src/assets/10b6454492f55776817fcca630423f3e548acf56.png'),
         'figma:asset/0c886e7cf9949bbb4fe6e6d8e691c3674b741280.png': path.resolve(__dirname, './src/assets/0c886e7cf9949bbb4fe6e6d8e691c3674b741280.png'),
-        'embla-carousel-react@8.6.0': 'embla-carousel-react',
-        'cmdk@1.1.1': 'cmdk',
-        'class-variance-authority@0.7.1': 'class-variance-authority',
-        '@radix-ui/react-tooltip@1.1.8': '@radix-ui/react-tooltip',
-        '@radix-ui/react-toggle@1.1.2': '@radix-ui/react-toggle',
-        '@radix-ui/react-toggle-group@1.1.2': '@radix-ui/react-toggle-group',
-        '@radix-ui/react-tabs@1.1.3': '@radix-ui/react-tabs',
-        '@radix-ui/react-switch@1.1.3': '@radix-ui/react-switch',
-        '@radix-ui/react-slot@1.1.2': '@radix-ui/react-slot',
-        '@radix-ui/react-slider@1.2.3': '@radix-ui/react-slider',
-        '@radix-ui/react-separator@1.1.2': '@radix-ui/react-separator',
-        '@radix-ui/react-select@2.1.6': '@radix-ui/react-select',
-        '@radix-ui/react-scroll-area@1.2.3': '@radix-ui/react-scroll-area',
-        '@radix-ui/react-radio-group@1.2.3': '@radix-ui/react-radio-group',
-        '@radix-ui/react-progress@1.1.2': '@radix-ui/react-progress',
-        '@radix-ui/react-popover@1.1.6': '@radix-ui/react-popover',
-        '@radix-ui/react-navigation-menu@1.2.5': '@radix-ui/react-navigation-menu',
-        '@radix-ui/react-menubar@1.1.6': '@radix-ui/react-menubar',
-        '@radix-ui/react-label@2.1.2': '@radix-ui/react-label',
-        '@radix-ui/react-hover-card@1.1.6': '@radix-ui/react-hover-card',
-        '@radix-ui/react-dropdown-menu@2.1.6': '@radix-ui/react-dropdown-menu',
-        '@radix-ui/react-dialog@1.1.6': '@radix-ui/react-dialog',
-        '@radix-ui/react-context-menu@2.2.6': '@radix-ui/react-context-menu',
-        '@radix-ui/react-collapsible@1.1.3': '@radix-ui/react-collapsible',
-        '@radix-ui/react-checkbox@1.1.4': '@radix-ui/react-checkbox',
-        '@radix-ui/react-avatar@1.1.3': '@radix-ui/react-avatar',
-        '@radix-ui/react-aspect-ratio@1.1.2': '@radix-ui/react-aspect-ratio',
-        '@radix-ui/react-alert-dialog@1.1.6': '@radix-ui/react-alert-dialog',
-        '@radix-ui/react-accordion@1.2.3': '@radix-ui/react-accordion',
         '@': path.resolve(__dirname, './src'),
       },
     },
-    build: {
+    build: isLibrary ? {
+      lib: {
+        entry: path.resolve(__dirname, 'src/index.ts'),
+        name: 'ReactStickerDesign',
+        formats: ['es', 'umd'],
+        fileName: (format) => `index.${format === 'es' ? 'esm.' : ''}js`,
+      },
+      rollupOptions: {
+        external: ['react', 'react-dom'],
+        output: {
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+          },
+        },
+      },
+      outDir: 'dist',
+      sourcemap: true,
+    } : {
       target: 'esnext',
       outDir: 'build',
     },
@@ -83,4 +72,5 @@
       port: 3000,
       open: true,
     },
-  });
+  };
+});
